@@ -1,436 +1,787 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Find your table</title>
 
-  <title>Find Your Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<style>
+  :root {
+    --rose: #C0392B;
+    --pink-mid: #D9748A;
+    --ink: #4A2530;
+    --muted: #B79399;
+    --bg: #FFFBF8;
+  }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #fdf1f0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      color: #6e3b3b;
-      font-family: Georgia, "Times New Roman", serif;
-    }
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    font-family: 'Inter', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+    overflow-x: hidden;
+  }
+
+  .card {
+    position: relative;
+    overflow: hidden;
+    max-width: 540px;
+    width: 100%;
+    background: var(--bg);
+    border-radius: 16px;
+    padding: clamp(2.25rem, 9vw, 3rem) clamp(1.25rem, 6vw, 1.75rem);
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(74, 37, 48, 0.08);
+  }
+
+  .flower {
+    position: absolute;
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .eyebrow {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(14px, 3.8vw, 16px);
+    letter-spacing: 0.02em;
+    color: var(--rose);
+    margin: 0 0 6px;
+    line-height: 1.4;
+    padding: 0 8px;
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(23px, 6.5vw, 28px);
+    color: var(--ink);
+    margin: 0 0 28px;
+  }
+
+  .search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    max-width: 340px;
+    margin: 0 auto 8px;
+  }
+
+  #nameInput {
+    flex: 1 1 180px;
+    min-width: 0;
+    height: 48px;
+    border-radius: 24px;
+    border: 1px solid #EAC4C9;
+    background: #FFFFFF;
+    padding: 0 18px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    outline: none;
+  }
+
+  #nameInput:focus {
+    border-color: var(--rose);
+  }
+
+  #findBtn {
+    flex: 0 0 auto;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 24px;
+    border: 1px solid var(--rose);
+    background: var(--rose);
+    color: #FFFBF8;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  #findBtn:hover {
+    background: #A83226;
+  }
+
+  #findBtn:active {
+    background: #922B21;
+  }
+
+  #findBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  #statusMsg {
+    font-size: 13px;
+    min-height: 18px;
+    margin: 0 0 16px;
+    padding: 0 8px;
+  }
+
+  #statusMsg.error {
+    color: var(--rose);
+  }
+
+  #statusMsg.loading {
+    color: var(--muted);
+  }
+
+  #results {
+    margin-top: 8px;
+  }
+
+  .result-item {
+    margin: 0 0 20px;
+  }
+
+  .result-item .prefix {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(15px, 4.2vw, 17px);
+    color: #8C5A63;
+    margin: 0 0 4px;
+    word-wrap: break-word;
+  }
+
+  .result-item .table-line {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+    font-size: clamp(32px, 10vw, 42px);
+    color: var(--rose);
+    margin: 0;
+    line-height: 1.15;
+  }
+
+  .celebrate {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--muted);
+    margin: 6px 0 0;
+  }
+
+  .hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 26px 0 0;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+
+  /* --- Small phone tuning --- */
+  @media (max-width: 380px) {
     .card {
-      width: 100%;
-      max-width: 450px;
-      background: #ffffff;
-      padding: 50px 30px;
-      text-align: center;
-      border: 1px solid #f4d9d6;
-      box-shadow: 0 10px 35px rgba(197, 90, 90, 0.12);
-      position: relative;
-    }
-
-    .small-title {
-      font-family: Arial, sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-size: 11px;
-      color: #c98a8a;
-      margin-bottom: 15px;
+      border-radius: 14px;
     }
 
     h1 {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 48px;
-      font-weight: normal;
-      line-height: 1;
-      margin: 0;
-      color: #a94b4b;
+      margin-bottom: 22px;
     }
 
-    .divider {
-      margin: 22px 0;
-      color: #e0a9a9;
-      font-size: 20px;
-      letter-spacing: 6px;
+    .search-row {
+      max-width: 100%;
     }
 
-    .instruction {
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      color: #a97d7d;
-      margin-bottom: 18px;
+    #findBtn {
+      padding: 0 20px;
     }
+  }
 
-    input {
-      width: 100%;
-      padding: 15px;
-      border: 1px solid #f0d7d4;
-      background: #fffaf9;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      text-align: center;
-      outline: none;
-      color: #6e3b3b;
+  /* Shrink/reposition decorative flowers so they never crowd the text on narrow screens */
+  @media (max-width: 420px) {
+    .flower {
+      transform: scale(0.72);
     }
+  }
 
-    input:focus {
-      border-color: #d98e8e;
+  @media (max-width: 340px) {
+    .flower {
+      transform: scale(0.55);
     }
-
-    button {
-      width: 100%;
-      margin-top: 12px;
-      padding: 15px;
-      background: #c96a6a;
-      color: white;
-      border: none;
-      font-family: Arial, sans-serif;
-      font-size: 12px;
-      font-weight: bold;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #b45555;
-    }
-
-    #result {
-      margin-top: 30px;
-      min-height: 70px;
-    }
-
-    .table-label {
-      font-family: Arial, sans-serif;
-      text-transform: uppercase;
-      letter-spacing: 3px;
-      font-size: 11px;
-      color: #c98a8a;
-      margin-bottom: 5px;
-    }
-
-    .table-number {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: 65px;
-      color: #a94b4b;
-      font-weight: bold;
-      line-height: 1.1;
-    }
-
-    .error {
-      font-family: Arial, sans-serif;
-      color: #b23b3b;
-      font-size: 13px;
-      line-height: 1.5;
-    }
-
-    .footer {
-      margin-top: 30px;
-      font-size: 17px;
-      font-style: italic;
-      color: #c48c8c;
-    }
-
-    @media (max-width: 500px) {
-      .card {
-        padding: 40px 25px;
-      }
-
-      h1 {
-        font-size: 42px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
 
-  <div class="card">
+<div class="card">
 
-    <div class="small-title">
-      Welcome to the Big Fat Indian Wedding
-    </div>
+  <h2 class="sr-only">
+    A page where wedding guests can search their name to find their assigned table number.
+  </h2>
+
+  <!-- Flower 1 -->
+  <svg class="flower" style="top:-6px; left:-6px; transform-origin: top left;" width="64" height="64" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#C0392B" stroke-width="1.4">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#F8CFCF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(72 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(144 35 35)" fill="#F8CFCF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(216 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(288 35 35)" fill="#F8CFCF"/>
+    </g>
+    <circle cx="35" cy="35" r="4" fill="#C0392B"/>
+  </svg>
+
+  <!-- Flower 2 -->
+  <svg class="flower" style="top:14px; right:6px; transform-origin: top right;" width="46" height="46" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#D9748A" stroke-width="1.4">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#FFFFFF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(72 35 35)" fill="#FDF0F1"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(144 35 35)" fill="#FFFFFF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(216 35 35)" fill="#FDF0F1"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(288 35 35)" fill="#FFFFFF"/>
+    </g>
+    <circle cx="35" cy="35" r="3.5" fill="#E8A0AE"/>
+  </svg>
+
+  <!-- Flower 3 -->
+  <svg class="flower" style="bottom:-10px; left:8px; transform-origin: bottom left;" width="70" height="70" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#D9748A" stroke-width="1.4">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(72 35 35)" fill="#EF8FA0"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(144 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(216 35 35)" fill="#EF8FA0"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(288 35 35)" fill="#F6B9BE"/>
+    </g>
+    <circle cx="35" cy="35" r="4" fill="#C0392B"/>
+  </svg>
+
+  <!-- Flower 4 -->
+  <svg class="flower" style="bottom:20px; right:-4px; transform-origin: bottom right;" width="50" height="50" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#C0392B" stroke-width="1.4">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#F8CFCF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(72 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(144 35 35)" fill="#F8CFCF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(216 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(288 35 35)" fill="#F8CFCF"/>
+    </g>
+    <circle cx="35" cy="35" r="4" fill="#C0392B"/>
+  </svg>
+
+  <!-- Flower 5 -->
+  <svg class="flower" style="top:120px; left:14px; transform-origin: top left;" width="34" height="34" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#D9748A" stroke-width="1.6">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#FFFFFF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(90 35 35)" fill="#FDF0F1"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(180 35 35)" fill="#FFFFFF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(270 35 35)" fill="#FDF0F1"/>
+    </g>
+    <circle cx="35" cy="35" r="3.5" fill="#E8A0AE"/>
+  </svg>
+
+  <!-- Flower 6 -->
+  <svg class="flower" style="top:150px; right:20px; transform-origin: top right;" width="30" height="30" viewBox="0 0 70 70" aria-hidden="true">
+    <g fill="none" stroke="#C0392B" stroke-width="1.6">
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(90 35 35)" fill="#F8CFCF"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(180 35 35)" fill="#F6B9BE"/>
+      <path d="M35 10 Q45 20 35 35 Q25 20 35 10 Z" transform="rotate(270 35 35)" fill="#F8CFCF"/>
+    </g>
+    <circle cx="35" cy="35" r="3" fill="#C0392B"/>
+  </svg>
+
+  <div class="content">
+
+    <p class="eyebrow">
+      Welcome to the Big Fat Indian wedding
+    </p>
 
     <h1>
-      Find Your<br>
-      Table
+      Find your table
     </h1>
 
-    <div class="divider">
-      ✦ ❦ ✦
+    <div class="search-row">
+      <input
+        id="nameInput"
+        type="text"
+        placeholder="Enter your name"
+        autocomplete="off"
+        autocapitalize="words"
+        enterkeyhint="search"
+      />
+
+      <button id="findBtn">
+        Find
+      </button>
     </div>
 
-    <div class="instruction">
-      Please enter your name below
-    </div>
+    <p id="statusMsg"></p>
 
-    <input
-      type="text"
-      id="nameInput"
-      placeholder="Your full name"
-      autocomplete="off"
-    >
+    <div id="results"></div>
 
-    <button onclick="findTable()">
-      Find My Table
-    </button>
-
-    <div id="result"></div>
-
-    <div class="footer">
-      We can't wait to celebrate with you
-    </div>
+    <p class="hint">
+      Search your first name, or first and last name together.
+    </p>
 
   </div>
+</div>
 
+
+<!-- PapaParse: reads the Google Sheet CSV -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
 
-  const spreadsheetId = "1_ZvRtd3DyjuwzDIJmdGdNLIgW8kEH1siYH_srOFuXCU";
+  // ============================================================
+  // GOOGLE SHEET
+  // ============================================================
+  //
+  // Paste your NORMAL Google Sheet link here.
+  //
+  // Example:
+  // https://docs.google.com/spreadsheets/d/ABC123/edit?gid=0#gid=0
+  //
+  // You do NOT need to add ?output=csv.
+  // The code below converts it automatically.
+  //
+  // ============================================================
 
-  async function findTable() {
+  const SHEET_URL =
+    "https://docs.google.com/spreadsheets/d/1_ZvRtd3DyjuwzDIJmdGdNLIgW8kEH1siYH_srOFuXCU/edit?gid=0#gid=0";
 
-    const nameInput = document.getElementById("nameInput");
-    const result = document.getElementById("result");
 
-    const searchName = nameInput.value
-      .trim()
-      .toLowerCase();
+  // ============================================================
+  // CONVERT GOOGLE SHEET URL INTO CSV URL
+  // ============================================================
 
-    if (!searchName) {
-      result.innerHTML =
-        '<div class="error">Please enter your name.</div>';
-      return;
+  function getCsvUrl(sheetUrl) {
+
+    // Find the Google spreadsheet ID
+    const idMatch = sheetUrl.match(
+      /\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/
+    );
+
+    // Find the tab ID (gid)
+    const gidMatch = sheetUrl.match(
+      /[#?&]gid=([0-9]+)/
+    );
+
+    if (!idMatch) {
+      throw new Error("Invalid Google Sheet URL");
     }
 
-    result.innerHTML =
-      '<div class="instruction">Finding your table...</div>';
+    const spreadsheetId = idMatch[1];
+
+    // If no gid is provided, use the first tab
+    const gid = gidMatch ? gidMatch[1] : "0";
+
+    return (
+      `https://docs.google.com/spreadsheets/d/` +
+      `${spreadsheetId}/export?format=csv&gid=${gid}`
+    );
+  }
+
+
+  // ============================================================
+  // VARIABLES
+  // ============================================================
+
+  let guestList = [];
+  let dataLoaded = false;
+
+  const nameInput =
+    document.getElementById("nameInput");
+
+  const findBtn =
+    document.getElementById("findBtn");
+
+  const statusMsg =
+    document.getElementById("statusMsg");
+
+  const resultsEl =
+    document.getElementById("results");
+
+
+  // ============================================================
+  // STATUS MESSAGE
+  // ============================================================
+
+  function setStatus(text, type) {
+
+    statusMsg.textContent = text || "";
+    statusMsg.className = type || "";
+
+  }
+
+
+  // ============================================================
+  // NORMALISE NAMES
+  // ============================================================
+
+  function normalize(str) {
+
+    return (str || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, " ");
+
+  }
+
+
+  // ============================================================
+  // LOAD GUEST LIST
+  // ============================================================
+
+  async function loadGuestList() {
+
+    setStatus(
+      "Loading the guest list…",
+      "loading"
+    );
+
+    findBtn.disabled = true;
 
     try {
 
-      const url =
-        `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:csv`;
+      // Convert normal Google Sheet URL to CSV URL
+      const csvUrl = getCsvUrl(SHEET_URL);
 
-      const response = await fetch(url);
+      console.log("Loading guest list from:", csvUrl);
+
+      // Fetch the Google Sheet
+      const response = await fetch(
+        csvUrl,
+        {
+          cache: "no-store"
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Could not load spreadsheet");
-      }
 
-      const csv = await response.text();
-
-      // Properly handle CSV values, including names containing commas
-      const rows = parseCSV(csv);
-
-      // Remove header row
-      const data = rows.slice(1);
-
-      /*
-        Spreadsheet format:
-
-        First Name | Last Name | Table Number
-        John       | Smith     | 12
-        Sarah      | Jones     | 7
-      */
-
-      const people = data
-        .filter(row => row.length >= 3)
-        .map(row => ({
-          firstName: row[0].trim(),
-          lastName: row[1].trim(),
-          tableNumber: row[2].trim()
-        }));
-
-      /*
-        Create full names and normalise everything
-        so searches are not affected by capitalisation.
-      */
-
-      const matches = people.filter(person => {
-
-        const firstName =
-          person.firstName.toLowerCase();
-
-        const lastName =
-          person.lastName.toLowerCase();
-
-        const fullName =
-          `${firstName} ${lastName}`;
-
-        return (
-          fullName === searchName ||
-          firstName === searchName ||
-          lastName === searchName
+        throw new Error(
+          `Google Sheet returned ${response.status}`
         );
 
-      });
-
-      // No match
-      if (matches.length === 0) {
-
-        result.innerHTML =
-          '<div class="error">' +
-          'We couldn\'t find your name.<br>' +
-          'Please check the spelling and try again.' +
-          '</div>';
-
-        return;
       }
 
-      // Multiple matches - show all so the guest can self-identify
-      if (matches.length > 1) {
+      // Read CSV
+      const csvText = await response.text();
 
-        const tableList = matches
-          .map(person => `<div class="table-number">${escapeHTML(person.tableNumber)}</div>`)
-          .join("");
-
-        result.innerHTML = `
-          <div class="table-label">
-            We found a few matches — your table is one of these
-          </div>
-
-          ${tableList}
-        `;
-
-        return;
-      }
-
-      // One match
-      showTableResult(matches[0]);
-
-    } catch (error) {
-
-      console.error(error);
-
-      result.innerHTML =
-        '<div class="error">' +
-        'Something went wrong.<br>' +
-        'Please try again.' +
-        '</div>';
-
-    }
-  }
-
-
-  function showTableResult(person) {
-
-    const result = document.getElementById("result");
-
-    result.innerHTML = `
-      <div class="table-label">
-        Your table is
-      </div>
-
-      <div class="table-number">
-        ${escapeHTML(person.tableNumber)}
-      </div>
-    `;
-
-  }
-
-
-  /*
-    Simple CSV parser.
-
-    This is better than using row.split(",")
-    because it correctly handles names containing
-    commas or quotation marks.
-  */
-
-  function parseCSV(csv) {
-
-    const rows = [];
-    let row = [];
-    let cell = "";
-    let insideQuotes = false;
-
-    for (let i = 0; i < csv.length; i++) {
-
-      const char = csv[i];
-      const nextChar = csv[i + 1];
-
-      if (char === '"' && insideQuotes && nextChar === '"') {
-
-        cell += '"';
-        i++;
-
-      } else if (char === '"') {
-
-        insideQuotes = !insideQuotes;
-
-      } else if (char === "," && !insideQuotes) {
-
-        row.push(cell);
-        cell = "";
-
-      } else if (
-        (char === "\n" || char === "\r") &&
-        !insideQuotes
-      ) {
-
-        if (char === "\r" && nextChar === "\n") {
-          i++;
+      // Parse CSV
+      const parsed = Papa.parse(
+        csvText.trim(),
+        {
+          skipEmptyLines: true
         }
+      );
 
-        row.push(cell);
-        rows.push(row);
+      const rows = parsed.data;
 
-        row = [];
-        cell = "";
 
-      } else {
+      // ========================================================
+      // CONVERT SHEET ROWS INTO GUEST OBJECTS
+      // ========================================================
 
-        cell += char;
+      guestList = rows
+        .slice(1) // Skip header row
+
+        .filter(
+          row =>
+            row.length >= 3 &&
+            normalize(row[0])
+        )
+
+        .map(row => ({
+
+          first:
+            (row[0] || "").trim(),
+
+          last:
+            (row[1] || "").trim(),
+
+          table:
+            (row[2] || "").trim()
+
+        }));
+
+
+      // Make sure we actually got data
+      if (guestList.length === 0) {
+
+        throw new Error(
+          "No guest rows found in the Google Sheet"
+        );
 
       }
+
+
+      console.log(
+        `Loaded ${guestList.length} guests`
+      );
+
+      dataLoaded = true;
+
+      setStatus("", "");
+
+
+    } catch (err) {
+
+      console.error(
+        "Guest list error:",
+        err
+      );
+
+      setStatus(
+        "Couldn't load the guest list. Please check the Google Sheet sharing settings and refresh.",
+        "error"
+      );
+
+    } finally {
+
+      findBtn.disabled = false;
+
     }
 
-    // Add final cell/row
-    if (cell !== "" || row.length > 0) {
-      row.push(cell);
-      rows.push(row);
-    }
-
-    return rows;
   }
 
 
-  /*
-    Prevent spreadsheet values from being interpreted
-    as HTML when displayed on the page.
-  */
+  // ============================================================
+  // FIND GUESTS
+  // ============================================================
 
-  function escapeHTML(value) {
+  function findGuests(query) {
 
-    return value
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+    const q = normalize(query);
+
+    if (!q) {
+      return [];
+    }
+
+    const tokenCount =
+      q.split(" ").length;
+
+
+    // ----------------------------------------------------------
+    // FIRST NAME ONLY
+    // ----------------------------------------------------------
+
+    if (tokenCount === 1) {
+
+      return guestList.filter(
+        g =>
+          normalize(g.first) === q
+      );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // FIRST + LAST NAME
+    // ----------------------------------------------------------
+
+    return guestList.filter(
+      g =>
+        normalize(
+          g.first + " " + g.last
+        ) === q
+    );
 
   }
 
 
-  // Press Enter to search
-  document
-    .getElementById("nameInput")
-    .addEventListener("keydown", function(event) {
+  // ============================================================
+  // DISPLAY RESULTS
+  // ============================================================
 
-      if (event.key === "Enter") {
-        findTable();
-      }
+  function renderResults(matches) {
+
+    resultsEl.innerHTML = "";
+
+    if (matches.length === 0) {
+      return;
+    }
+
+
+    matches.forEach(g => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "result-item";
+
+
+      const displayName =
+        g.last
+          ? `${g.first} ${g.last}`
+          : g.first;
+
+
+      const showNamePrefix =
+        matches.length > 1;
+
+
+      item.innerHTML = `
+
+        <p class="prefix">
+          ${
+            showNamePrefix
+              ? displayName + " is seated at"
+              : "You're seated at"
+          }
+        </p>
+
+        <p class="table-line">
+          Table ${g.table}
+        </p>
+
+      `;
+
+
+      resultsEl.appendChild(item);
 
     });
 
-</script>
 
+    // Celebration message
+
+    const celebrate =
+      document.createElement("p");
+
+    celebrate.className =
+      "celebrate";
+
+    celebrate.textContent =
+      "Can't wait to celebrate with you 🌸";
+
+    resultsEl.appendChild(
+      celebrate
+    );
+
+  }
+
+
+  // ============================================================
+  // SEARCH
+  // ============================================================
+
+  function handleSearch() {
+
+    const query =
+      nameInput.value;
+
+
+    // Still loading
+
+    if (!dataLoaded) {
+
+      setStatus(
+        "Still loading the guest list, one moment…",
+        "loading"
+      );
+
+      return;
+
+    }
+
+
+    // Empty search
+
+    if (!normalize(query)) {
+
+      setStatus(
+        "Enter a name first",
+        "error"
+      );
+
+      resultsEl.innerHTML = "";
+
+      return;
+
+    }
+
+
+    // Find matching guests
+
+    const matches =
+      findGuests(query);
+
+
+    // No matches
+
+    if (matches.length === 0) {
+
+      setStatus(
+        "Couldn't find that name. Try just your first name, or check the spelling.",
+        "error"
+      );
+
+      resultsEl.innerHTML = "";
+
+    }
+
+    // Matches found
+
+    else {
+
+      setStatus("", "");
+
+      renderResults(matches);
+
+    }
+
+  }
+
+
+  // ============================================================
+  // BUTTON CLICK
+  // ============================================================
+
+  findBtn.addEventListener(
+    "click",
+    handleSearch
+  );
+
+
+  // ============================================================
+  // ENTER KEY
+  // ============================================================
+
+  nameInput.addEventListener(
+    "keydown",
+    e => {
+
+      if (e.key === "Enter") {
+        handleSearch();
+      }
+
+    }
+  );
+
+
+  // ============================================================
+  // LOAD THE SHEET WHEN PAGE OPENS
+  // ============================================================
+
+  loadGuestList();
+
+</script>
 
 </body>
 </html>
